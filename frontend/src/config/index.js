@@ -15,7 +15,7 @@ export const resigterFormControls = [
   },
   {
     name: "lastname",
-    label: "Lastname Name",
+    label: "Last Name",
     placeholder: "Enter your last name",
     componentType: "input",
     type: "text",

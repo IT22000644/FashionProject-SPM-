@@ -4,7 +4,7 @@ import CommonForm from "@/components/common/form";
 import { resigterFormControls } from "@/config";
 import { useDispatch } from "react-redux";
 import { registerUser } from "@/redux/authSlice";
-import { useToast, toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const initialState = {
   username: "",
@@ -12,18 +12,60 @@ const initialState = {
   lastname: "",
   email: "",
   password: "",
-  referralCode: "",
+  confirmPassword: "",
+  //referralCode: "",
 };
 
 const AuthSignup = () => {
   const [formData, setFormData] = useState(initialState);
+  const [errorMessage, setErrorMessage] = useState(""); // ✅ State for error message
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // ✅ Helper function to validate email format
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // ✅ Helper function to check empty fields
+  const isFormValid = () => {
+    return Object.values(formData).every((value) => value.trim() !== "");
+  };
+
   function onSubmit(event) {
     event.preventDefault();
-    console.log(formData);
+
+    // ✅ Clear previous error message
+    setErrorMessage("");
+
+    // ✅ Check if any field is empty
+    if (!isFormValid()) {
+      setErrorMessage("Please fill in all the fields.");
+      return;
+    }
+
+    // ✅ Check for password mismatch
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMessage("Passwords do not match.");
+      return;
+    }
+
+    if (!/^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(formData.password)) {
+        setErrorMessage("Password must be at least 8 characters long and contain at least one number and one special character.");
+        return;
+    }
+
+    // ✅ Validate email format
+    if (!isValidEmail(formData.email)) {
+      setErrorMessage("Invalid email format.");
+      return;
+    }
+
+    console.log("Form Data:", formData);
+
+    // ✅ Dispatch the registration action
     dispatch(registerUser(formData)).then((data) => {
       if (data?.payload?.success) {
         toast({
@@ -32,16 +74,23 @@ const AuthSignup = () => {
           duration: 3000,
         });
         navigate("/shop/home");
+      } else if (data?.payload?.message === "Username already exists") {
+        setErrorMessage("Username already exists. Please choose another one.");
+      } else if (data?.payload?.message === "Email already exists") {
+        setErrorMessage("Email already in use. Please use a different email.");
+      } else {
+        console.log(data);
+        setErrorMessage(data?.payload?.message || "Username or email already exists");
       }
     });
   }
 
   useEffect(() => {
-    // Extract referral token from URL and set referral code
+    // ✅ Extract referral token from URL and set referral code
     const queryParams = new URLSearchParams(window.location.search);
     const referralToken = queryParams.get("referralToken");
 
-    // Call API to get the referral code
+    // ✅ Set referral code if present
     if (referralToken) {
       setFormData((prev) => ({ ...prev, referralCode: referralToken }));
     }
@@ -54,7 +103,7 @@ const AuthSignup = () => {
           Sign Up
         </h1>
         <p className="mt-2">
-          Already have an account
+          Already have an account?
           <Link
             className="font-medium ml-2 text-primary hover:underline"
             to="/auth/login"
@@ -63,6 +112,14 @@ const AuthSignup = () => {
           </Link>
         </p>
       </div>
+
+      {/* ✅ Display error message in red */}
+      {errorMessage && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
+          {errorMessage}
+        </div>
+      )}
+
       <CommonForm
         formControls={resigterFormControls}
         buttonText={"Sign Up"}

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { createPromoCode } from "@/redux/loyaltySlice/promoSlice";
 import { promoFormControls } from "@/config/promoFormConfig";
 import { useToast } from "@/hooks/use-toast";
-
+ 
 const PromoCodes = () => {
   const [formData, setFormData] = useState({
     code: "",
@@ -17,17 +17,17 @@ const PromoCodes = () => {
   });
   const [error, setError] = useState("");
   const [discountError, setDiscountError] = useState("");
-
+ 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
-
+ 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
+ 
     // Reset discount error on change
     setDiscountError("");
-
+ 
     // Handle disabling of fields
     if (name === "discountPercentage" && value) {
       setFormData((prev) => ({
@@ -45,10 +45,10 @@ const PromoCodes = () => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+ 
     // Check that at least one discount field is filled
     if (!formData.discountPercentage && !formData.discountAmount) {
       setDiscountError(
@@ -56,7 +56,7 @@ const PromoCodes = () => {
       );
       return;
     }
-
+ 
     const expiresAt = formData.expiresAt ? new Date(formData.expiresAt) : null;
     const discountPercentageValue = formData.discountPercentage
       ? parseFloat(formData.discountPercentage)
@@ -64,14 +64,14 @@ const PromoCodes = () => {
     const discountAmountValue = formData.discountAmount
       ? parseFloat(formData.discountAmount)
       : null;
-
+ 
     const promoData = {
       ...formData,
       expiresAt,
       discountPercentage: discountPercentageValue,
       discountAmount: discountAmountValue,
     };
-
+ 
     try {
       await dispatch(createPromoCode(promoData)).unwrap();
       toast({
@@ -88,11 +88,11 @@ const PromoCodes = () => {
       });
     }
   };
-
+ 
   const handleViewPromoCodes = () => {
     navigate("/admin/view-promos");
   };
-
+ 
   const handleClick = (name) => {
     if (name === "discountAmount" && formData.discountPercentage) {
       setDiscountError(
@@ -104,7 +104,7 @@ const PromoCodes = () => {
       );
     }
   };
-
+ 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-gray-100 to-gray-300 border-2 border-black">
       <div className="container mx-auto p-4">
@@ -118,7 +118,7 @@ const PromoCodes = () => {
             View All Promo Codes
           </button>
         </div>
-
+ 
         <form
           onSubmit={handleSubmit}
           className="bg-white p-6 rounded shadow-md"
@@ -165,12 +165,12 @@ const PromoCodes = () => {
               )}
             </div>
           ))}
-
+ 
           {/* Display error message when user tries to input in read-only fields */}
           {discountError && (
             <p className="text-red-500 text-sm mb-4">{discountError}</p>
           )}
-
+ 
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mr-4"
@@ -182,5 +182,5 @@ const PromoCodes = () => {
     </div>
   );
 };
-
+ 
 export default PromoCodes;
