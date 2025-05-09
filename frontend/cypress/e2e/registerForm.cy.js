@@ -23,11 +23,10 @@ describe('Registration Form Test', () => {
     //Step 5: Check for redirect to the home page
     cy.location('pathname', { timeout: 10000 }).should('eq', '/shop/home');
 
-    // Additional check: Verify that the URL contains the correct path
-    cy.url().should('include', '/shop/home');
+    cy.visit('http://localhost:5173/shop/profile');
 
-    //Optional : Check for user-specific content on the home page
-    cy.contains('Discover Your Style', { timeout: 10000 }).should('be.visible');
+    //Optional : Check if the user name exists in the user profile page
+    cy.contains('pevinya99', { timeout: 10000 }).should('be.visible');
   });
 
   // // ✅ Error: Signing up with an existing username
@@ -90,6 +89,26 @@ describe('Registration Form Test', () => {
     cy.url().should('not.include', '/shop/home');
   });
 
+
+  it('shows an error when entering special characters to the username', () => {
+    cy.contains('Sign Up', { timeout: 10000 }).should('be.visible');
+
+
+    cy.get('input[name="username"]').should('be.visible').type('pevinya99##');
+    cy.get('input[name="firstname"]').type('Pevinya');
+    cy.get('input[name="lastname"]').type('Peiris');
+    cy.get('input[name="email"]').type('pevinya@example.com');
+    cy.get('input[name="password"]').type('Test@1234');
+    cy.get('input[name="confirmPassword"]').type('Test@1234');
+
+    // Step 2: Submit the form
+    cy.get('form').submit();
+
+    // Step 3: Check for error message
+    cy.contains('Username should not contain special characters.', { timeout: 10000 }).should('be.visible');
+    cy.url().should('not.include', '/shop/home');
+  });
+
    // ✅ Error: Invalid email format
   it('shows an error when email format is invalid', () => {
     cy.contains('Sign Up', { timeout: 10000 }).should('be.visible');
@@ -107,6 +126,43 @@ describe('Registration Form Test', () => {
 
     // Step 3: Check for the built-in browser email validation message
     cy.get('input[name="email"]:invalid').should('have.length', 1);
+  });
+
+  it('shows an error when passwords do not match', () => {
+    cy.contains('Sign Up', { timeout: 10000 }).should('be.visible');
+
+
+    cy.get('input[name="username"]').should('be.visible').type('pevinya99');
+    cy.get('input[name="firstname"]').type('Pevinya');
+    cy.get('input[name="lastname"]').type('Peiris');
+    cy.get('input[name="email"]').type('pevinya@example.com');
+    cy.get('input[name="password"]').type('Test@1234');
+    cy.get('input[name="confirmPassword"]').type('Mismatch123');
+
+    // Step 2: Submit the form
+    cy.get('form').submit();
+
+    // Step 3: Check for error message
+    cy.contains('Passwords do not match', { timeout: 10000 }).should('be.visible');
+    cy.url().should('not.include', '/shop/home');
+  });
+
+   // ✅ Error: Invalid email format
+  it('shows an error when an unsafe password is used', () => {
+    cy.contains('Sign Up', { timeout: 10000 }).should('be.visible');
+
+    // Step 1: Fill the registration form with an invalid email
+    cy.get('input[name="username"]').should('be.visible').type('invaliduser');
+    cy.get('input[name="firstname"]').type('Pevinya');
+    cy.get('input[name="lastname"]').type('Peiris');
+    cy.get('input[name="email"]').type('invalidemail.com'); // Missing '@'
+    cy.get('input[name="password"]').type('123');
+    cy.get('input[name="confirmPassword"]').type('123');
+
+    // Step 2: Try to submit the form
+    cy.get('form').submit();
+
+    cy.contains('Password must be at least 8 characters long and contain at least one number and one special character.', { timeout: 10000 }).should('be.visible');
   });
 
   // ✅ Error: Mismatched passwords

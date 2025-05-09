@@ -46,6 +46,11 @@ const AuthSignup = () => {
       return;
     }
 
+    if (/[^a-zA-Z0-9]/.test(formData.username)) {
+    setErrorMessage("Username should not contain special characters.");
+    return;
+    }
+
     // ✅ Check for password mismatch
     if (formData.password !== formData.confirmPassword) {
       setErrorMessage("Passwords do not match.");
